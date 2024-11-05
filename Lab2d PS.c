@@ -1,50 +1,71 @@
 #include <stdio.h>
-void main()
+
+struct processControlBlock
 {
-    int x, n, p[10], pp[10], pt[10], w[10], t[10], awt, atat, i;
-    printf("Enter the number of process : ");
+    int id, Priority;
+    int burstTime;
+    int startTime, completionTime, waitTime, turnAroundTime;
+} pcb[20] = {0};
+
+int main()
+{
+    int i, n, prevProcCompTime = 0;
+    int totalWaitTime = 0, totalTurnAroundTime = 0;
+    float avgWaitTime, avgTurnAroundTime;
+
+    //Read the process data
+    printf("Enter the number of processes: ");
     scanf("%d", &n);
-    printf("\n Enter process : time priorities \n");
+    printf("Enter the process details\nProcessId, Priority, Burst Time:\n");
     for (i = 0; i < n; i++)
     {
-        printf("\nProcess no %d : ", i + 1);
-        scanf("%d %d", &pt[i], &pp[i]);
-        p[i] = i + 1;
+        scanf("%d %d %d", &pcb[i].id, &pcb[i].Priority, &pcb[i].burstTime);
     }
-    for (i = 0; i < n - 1; i++)
+
+    //Sorting process id, Priority , Burst Time
+    for (int i = 0; i < n; i++)
     {
         for (int j = i + 1; j < n; j++)
         {
-            if (pp[i] < pp[j])
+            if (pcb[i].Priority > pcb[j].Priority)
             {
-                x = pp[i];
-                pp[i] = pp[j];
-                pp[j] = x;
-                x = pt[i];
-                pt[i] = pt[j];
-                pt[j] = x;
-                x = p[i];
-                p[i] = p[j];
-                p[j] = x;
+                int temp = pcb[i].Priority;
+                pcb[i].Priority = pcb[j].Priority;
+                pcb[j].Priority = temp;
+                temp = pcb[i].burstTime;
+                pcb[i].burstTime = pcb[j].burstTime;
+                pcb[j].burstTime = temp;
+                temp = pcb[i].id;
+                pcb[i].id = pcb[j].id;
+                pcb[j].id = temp;
             }
         }
     }
-    w[0] = 0;
-    awt = 0;
-    t[0] = pt[0];
-    atat = t[0];
-    for (i = 1; i < n; i++)
-    {
-        w[i] = t[i - 1];
-        awt += w[i];
-        t[i] = w[i] + pt[i];
-        atat += t[i];
-    }
-    printf("\n\n Job \t Burst Time \t Wait Time \t Turn Around Time Priority \n");
+
+    //Using Priority algo, compute start, completition, turn around and wait time.
     for (i = 0; i < n; i++)
-        printf("\n %d \t\t %d \t\t %d \t\t %d \t\t %d \n", p[i], pt[i], w[i], t[i], pp[i]);
-    awt /= n;
-    atat /= n;
-    printf("\n Average Wait Time : %d \n", awt);
-    printf("\n Average Turn Around Time : %d \n", atat);
+    {
+        pcb[i].startTime = prevProcCompTime;
+        pcb[i].completionTime = pcb[i].startTime + pcb[i].burstTime;
+        pcb[i].turnAroundTime = pcb[i].completionTime;
+        pcb[i].waitTime = pcb[i].turnAroundTime - pcb[i].burstTime;
+        prevProcCompTime = pcb[i].completionTime;
+        totalWaitTime += pcb[i].waitTime;
+        totalTurnAroundTime += pcb[i].turnAroundTime;
+    }
+
+    //Diplay details of each process
+    printf("\nPId \t Priority \t BurstTime \t StartTime \t CompletitionTime \t TurnAroundTime\t WaitTime");
+    for (i = 0; i < n; i++)
+    {
+        printf("\n%d\t%d\t%6d\t\t%6d\t\t%6d\t\t\t%6d\t\t\t%6d", pcb[i].id, pcb[i].Priority,
+               pcb[i].burstTime, pcb[i].startTime, pcb[i].completionTime,
+               pcb[i].turnAroundTime, pcb[i].waitTime);
+    }
+    
+    avgWaitTime = (float)totalWaitTime / n;
+    avgTurnAroundTime = (float)totalTurnAroundTime / n;
+    printf("\nAverage Waiting time: %f", avgWaitTime);
+    printf("\nAverage Turn Around Time: %f\n", avgTurnAroundTime);
+    return 0;
 }

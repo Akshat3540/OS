@@ -1,50 +1,60 @@
 #include <stdio.h>
-
-void main()
+struct processControlBlock
 {
-    int i, j, n, temp;
-    int burst_time[10], process_num[10], tat[10], wait_time[10];
-    float total_wt, total_tat;
-
-    printf("Number of Process = ");
+    int id;
+    int burstTime;
+    int startTime, completionTime, waitTime, turnAroundTime;
+} pcb[20] = {0};
+int main()
+{
+    int i, n, prevProcCompTime = 0;
+    int totalWaitTime = 0, totalTurnAroundTime = 0;
+    float avgWaitTime, avgTurnAroundTime;
+    /*Read the process data */
+    printf("Enter the number of processes: ");
     scanf("%d", &n);
-    printf("\n");
-
+    printf("Enter the process details\nProcessId, Burst Time\n");
     for (i = 0; i < n; i++)
     {
-        printf("Burst Time of Process %d = ", i);
-        scanf("%d", &burst_time[i]);
+        scanf("%d %d", &pcb[i].id, &pcb[i].burstTime);
     }
-
-    for (i = 0; i < n - 1; i++)
+    /* Sorting pcb array in the ascending order of the burst time*/
+    for (int i = 0; i < n; i++)
     {
-        for (j = i + 1; j < n; j++)
+        for (int j = i + 1; j < n; j++)
         {
-            if (burst_time[i] > burst_time[j])
+            if (pcb[i].burstTime > pcb[j].burstTime)
             {
-                temp = burst_time[i];
-                burst_time[i] = burst_time[j];
-                burst_time[j] = temp;
-                temp = process_num[i];
-                process_num[i] = process_num[j];
-                process_num[j] = temp;
+                int temp = pcb[i].burstTime;
+                pcb[i].burstTime = pcb[j].burstTime;
+                pcb[j].burstTime = temp;
+                temp = pcb[i].id;
+                pcb[i].id = pcb[j].id;
+                pcb[j].id = temp;
             }
         }
     }
-    wait_time[0] = 0;
-    for (i = 1; i < n; i++)
-    {
-        wait_time[i] = burst_time[i - 1] + wait_time[i - 1];
-        total_wt += wait_time[i];
-    }
-
-    printf("\nProcess Number\tBurst Time\tWaiting Time\tTurn Around Time\n");
+    /* Using SJF algo: compute start, completition, turn around and wait time. */
     for (i = 0; i < n; i++)
     {
-        tat[i] = burst_time[i] + wait_time[i];
-        total_tat += tat[i];
-        printf("%d\t\t%d\t\t%d\t\t%d\n", i, burst_time[i], wait_time[i], tat[i]);
+        pcb[i].startTime = prevProcCompTime;
+        pcb[i].completionTime = pcb[i].startTime + pcb[i].burstTime;
+        pcb[i].turnAroundTime = pcb[i].completionTime;
+        pcb[i].waitTime = pcb[i].turnAroundTime - pcb[i].burstTime;
+        prevProcCompTime = pcb[i].completionTime;
+        totalWaitTime += pcb[i].waitTime;
+        totalTurnAroundTime += pcb[i].turnAroundTime;
     }
-    printf("\nAverage Waiting Time = %f", total_wt/n);
-    printf("\nAverage Turn Around Time = %f\n", total_tat/n);
+    /*Diplay details of each process*/
+printf("\nPId \t BurstTime \t StartTime \t CompletitionTime \t TurnAroundTime \tWaitTime");
+for (i = 0; i < n; i++)
+{
+        printf("\n%d\t%6d\t\t%6d\t\t%6d\t\t\t%6d \t\t\t%6d", pcb[i].id, pcb[i].burstTime,
+               pcb[i].startTime, pcb[i].completionTime, pcb[i].turnAroundTime, pcb[i].waitTime);
+}
+avgWaitTime = (float)totalWaitTime / n;
+avgTurnAroundTime = (float)totalTurnAroundTime / n;
+printf("\nAverage Waiting time: %f", avgWaitTime);
+printf("\nAverage Turn Around Time: %f\n", avgTurnAroundTime);
+return 0;
 }
