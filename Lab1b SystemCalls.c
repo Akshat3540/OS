@@ -24,7 +24,7 @@ void main()
     }
     else if (pid > 0)
     {
-        printf("It is the process and pid is %d\n", getpid());
+        printf("It is the parent process and pid is %d\n", getpid());
         int status;
         wait(&status);
         printf("Child is reaped\n");
